@@ -1,12 +1,13 @@
 from PIL import Image
 import time
 from mazes import Maze
+from optimized_maze import OptimizedMaze, expand_path
 from factory import SolverFactory
 
 # Read command line arguments - the python argparse class is convenient here.
 import argparse
 
-def solve(factory, method, input_file, output_file):
+def solve(factory, method, optimize, input_file, output_file):
     # Load Image
     print ("Loading Image")
     im = Image.open(input_file)
@@ -14,7 +15,11 @@ def solve(factory, method, input_file, output_file):
     # Create the maze (and time it) - for many mazes this is more time consuming than solving the maze
     print ("Creating Maze")
     t0 = time.time()
-    maze = Maze(im)
+    if optimize:
+        maze = OptimizedMaze(im)
+    else:
+        maze = Maze(im)
+
     t1 = time.time()
     print ("Node Count:", maze.count)
     total = t1-t0
@@ -38,6 +43,19 @@ def solve(factory, method, input_file, output_file):
         print ("No Path Found")
     print ("Time elapsed: ", total, "\n")
 
+    # expand the result path when using the OptimizedMaze
+    if optimize:
+        print ("Expand resulting path")
+        t0 = time.time()
+        resultpath = expand_path(result)
+        t1 = time.time()
+        total = t1-t0
+
+        print ("Expanded path length: ", len(resultpath))
+        print ("Time elapsed: ", total, "\n")
+    else:
+        resultpath = [n.Position for n in result]
+
     """
     Create and save the output image.
     This is simple drawing code that travels between each node in turn, drawing either
@@ -49,7 +67,6 @@ def solve(factory, method, input_file, output_file):
     im = im.convert('RGB')
     impixels = im.load()
 
-    resultpath = [n.Position for n in result]
 
     length = len(resultpath)
 
@@ -78,11 +95,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--method", nargs='?', const=sf.Default, default=sf.Default,
                         choices=sf.Choices)
+    parser.add_argument("-o", "--optimizedmaze", action='store_true')
     parser.add_argument("input_file")
     parser.add_argument("output_file")
     args = parser.parse_args()
 
-    solve(sf, args.method, args.input_file, args.output_file)
+    solve(sf, args.method, args.optimizedmaze, args.input_file, args.output_file)
 
 if __name__ == "__main__":
     main()
