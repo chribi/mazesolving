@@ -188,11 +188,10 @@ class OptimizedMaze:
                         if merged:
                             # if we just merged topnode into leftnode, we may need
                             # to replace topnode somewhere in topnodes with leftnode
-                            for i in range(0, width):
-                                # TODO this should be possible without traversing topnodes
-                                if topnodes[i] == topnode:
-                                    topnodes[i] = leftnode
-                                    topnodes_out[i] = left_out
+                            i = leftnode.Paths[left_out][-1][1]
+                            if topnodes[i] == topnode:
+                                topnodes[i] = leftnode
+                                topnodes_out[i] = left_out
                             
                     elif left and down:
                         topnodes[x] = leftnode
